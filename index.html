@@ -1,0 +1,1523 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes, maximum-scale=5.0">
+    <title>3D Control Center</title>
+    <meta name="description" content="Panel de control para negocio de impresión 3D">
+    <meta name="theme-color" content="#1a1a1a">
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="3D Control">
+    <meta name="format-detection" content="telephone=no">
+    
+    <!-- PWA Icons -->
+    <link rel="icon" type="image/png" sizes="32x32" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><rect width='32' height='32' fill='%23ff6b35'/><text x='16' y='20' text-anchor='middle' font-size='18' fill='white'>3D</text></svg>">
+    <link rel="apple-touch-icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 192 192'><rect width='192' height='192' fill='%23ff6b35'/><text x='96' y='120' text-anchor='middle' font-size='80' fill='white'>3D</text></svg>">
+    
+    <!-- PWA Manifest -->
+    <link rel="manifest" href="manifest.json">
+    
+    <!-- Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    
+    <!-- Icons -->
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    
+    <!-- Styles -->
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div id="app">
+        <!-- Mobile Menu Toggle -->
+        <button class="mobile-menu-toggle" onclick="toggleMobileMenu()">
+            <i class="fas fa-bars"></i>
+        </button>
+        
+        <!-- Mobile Overlay -->
+        <div class="mobile-overlay" onclick="closeMobileMenu()"></div>
+        
+        <!-- Sidebar Navigation -->
+        <nav class="sidebar" id="sidebar">
+            <div class="sidebar-header">
+                <h1><i class="fas fa-cube"></i> 3D Control</h1>
+            </div>
+            
+            <ul class="nav-menu">
+                <li><a href="#" data-page="dashboard" class="nav-link active">
+                    <i class="fas fa-tachometer-alt"></i> Dashboard
+                </a></li>
+                <li><a href="#" data-page="productos" class="nav-link">
+                    <i class="fas fa-box"></i> Productos
+                </a></li>
+                <li><a href="#" data-page="insumos" class="nav-link">
+                    <i class="fas fa-industry"></i> Insumos
+                </a></li>
+                <li><a href="#" data-page="calculo" class="nav-link">
+                    <i class="fas fa-calculator"></i> Calcular Costo
+                </a></li>
+                <li><a href="#" data-page="pedidos" class="nav-link">
+                    <i class="fas fa-clipboard-list"></i> Pedidos
+                </a></li>
+                <li><a href="#" data-page="clientes" class="nav-link">
+                    <i class="fas fa-users"></i> Clientes
+                </a></li>
+                <li><a href="#" data-page="cotizaciones" class="nav-link">
+                    <i class="fas fa-file-invoice-dollar"></i> Cotizaciones
+                </a></li>
+                <li><a href="#" data-page="facturacion" class="nav-link">
+                    <i class="fas fa-receipt"></i> Facturación
+                </a></li>
+                <li><a href="#" data-page="proveedores" class="nav-link">
+                    <i class="fas fa-truck"></i> Proveedores
+                </a></li>
+                <li><a href="#" data-page="equipos" class="nav-link">
+                    <i class="fas fa-tools"></i> Equipos
+                </a></li>
+                <li><a href="#" data-page="reportes" class="nav-link">
+                    <i class="fas fa-chart-bar"></i> Reportes
+                </a></li>
+                <li><a href="#" data-page="finanzas" class="nav-link">
+                    <i class="fas fa-money-bill-wave"></i> Finanzas
+                </a></li>
+                <li><a href="#" data-page="configuracion" class="nav-link">
+                    <i class="fas fa-cog"></i> Configuración
+                </a></li>
+            </ul>
+            
+            <div class="sidebar-footer">
+                <p>&copy; 2025 3D Control Center</p>
+            </div>
+        </nav>
+
+        <!-- Main Content -->
+        <main class="main-content">
+            <!-- Dashboard Page -->
+            <div id="dashboard-page" class="page active">
+                <div class="page-header">
+                    <h2>Dashboard</h2>
+                    <p>Resumen general de tu negocio</p>
+                </div>
+                
+                <div class="stats-grid">
+                    <div class="stat-card">
+                        <div class="stat-icon">
+                            <i class="fas fa-box"></i>
+                        </div>
+                        <div class="stat-info">
+                            <h3 id="total-productos">0</h3>
+                            <p>Productos en Stock</p>
+                        </div>
+                    </div>
+                    
+                    <div class="stat-card">
+                        <div class="stat-icon">
+                            <i class="fas fa-industry"></i>
+                        </div>
+                        <div class="stat-info">
+                            <h3 id="total-insumos">0</h3>
+                            <p>Tipos de Material</p>
+                        </div>
+                    </div>
+                    
+                    <div class="stat-card">
+                        <div class="stat-icon">
+                            <i class="fas fa-clipboard-list"></i>
+                        </div>
+                        <div class="stat-info">
+                            <h3 id="pedidos-activos">0</h3>
+                            <p>Pedidos Activos</p>
+                        </div>
+                    </div>
+                    
+                    <div class="stat-card">
+                        <div class="stat-icon">
+                            <i class="fas fa-dollar-sign"></i>
+                        </div>
+                        <div class="stat-info">
+                            <h3 id="ganancia-estimada">₡0</h3>
+                            <p>Ganancia Estimada</p>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="dashboard-content">
+                    <div class="recent-activity">
+                        <h3>Actividad Reciente</h3>
+                        <div id="recent-list" class="activity-list">
+                            <p>No hay actividad reciente</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Productos Page -->
+            <div id="productos-page" class="page">
+                <div class="page-header">
+                    <h2>Inventario de Productos</h2>
+                    <button class="btn btn-primary" onclick="openProductModal()">
+                        <i class="fas fa-plus"></i> Agregar Producto
+                    </button>
+                </div>
+                
+                <div class="table-container">
+                    <table class="data-table">
+                        <thead>
+                            <tr>
+                                <th>Nombre</th>
+                                <th>Descripción</th>
+                                <th>Categoría</th>
+                                <th>Precio</th>
+                                <th>Stock</th>
+                                <th>Acciones</th>
+                            </tr>
+                        </thead>
+                        <tbody id="productos-tbody">
+                            <tr>
+                                <td colspan="6" class="empty-state">No hay productos registrados</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- Insumos Page -->
+            <div id="insumos-page" class="page">
+                <div class="page-header">
+                    <h2>Inventario de Insumos</h2>
+                    <div class="page-actions">
+                        <button class="btn btn-secondary" onclick="openConsumoModal()">
+                            <i class="fas fa-minus-circle"></i> Registrar Consumo
+                        </button>
+                        <button class="btn btn-primary" onclick="openInsumoModal()">
+                            <i class="fas fa-plus"></i> Agregar Material
+                        </button>
+                    </div>
+                </div>
+                
+                <div class="insumos-content">
+                    <!-- Tabla de Inventario -->
+                    <div class="table-container">
+                        <h3>Inventario Actual</h3>
+                        <table class="data-table">
+                            <thead>
+                                <tr>
+                                    <th>Material</th>
+                                    <th>Color</th>
+                                    <th>Peso Disponible</th>
+                                    <th>Costo/kg</th>
+                                    <th>Valor Total</th>
+                                    <th>Estado</th>
+                                    <th>Acciones</th>
+                                </tr>
+                            </thead>
+                            <tbody id="insumos-tbody">
+                                <tr>
+                                    <td colspan="7" class="empty-state">No hay materiales registrados</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <!-- Historial de Consumo -->
+                    <div class="consumo-history">
+                        <h3>Historial de Consumo</h3>
+                        <div class="consumo-filters">
+                            <select id="filtro-material-consumo">
+                                <option value="">Todos los materiales</option>
+                            </select>
+                            <select id="filtro-periodo">
+                                <option value="7">Últimos 7 días</option>
+                                <option value="30">Últimos 30 días</option>
+                                <option value="90">Últimos 3 meses</option>
+                                <option value="all">Todo el historial</option>
+                            </select>
+                        </div>
+                        <div id="consumo-list" class="consumo-list">
+                            <p>No hay registros de consumo</p>
+                        </div>
+                    </div>
+
+                    <!-- Estadísticas de Consumo -->
+                    <div class="consumo-stats">
+                        <h3>Estadísticas de Consumo</h3>
+                        <div class="stats-grid">
+                            <div class="stat-card">
+                                <div class="stat-icon">
+                                    <i class="fas fa-chart-line"></i>
+                                </div>
+                                <div class="stat-info">
+                                    <h3 id="consumo-mes">0 kg</h3>
+                                    <p>Consumo este mes</p>
+                                </div>
+                            </div>
+                            <div class="stat-card">
+                                <div class="stat-icon">
+                                    <i class="fas fa-exclamation-triangle"></i>
+                                </div>
+                                <div class="stat-info">
+                                    <h3 id="materiales-bajos">0</h3>
+                                    <p>Materiales con stock bajo</p>
+                                </div>
+                            </div>
+                            <div class="stat-card">
+                                <div class="stat-icon">
+                                    <i class="fas fa-dollar-sign"></i>
+                                </div>
+                                <div class="stat-info">
+                                    <h3 id="costo-consumo-mes">₡0</h3>
+                                    <p>Costo consumo mensual</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Calculo Page -->
+            <div id="calculo-page" class="page">
+                <div class="page-header">
+                    <h2>Calculadora de Costos</h2>
+                    <p>Calcula el precio de impresión 3D</p>
+                </div>
+                
+                <div class="calc-container">
+                    <form id="calc-form" class="calc-form">
+                        <div class="form-group">
+                            <label>Material:</label>
+                            <select id="calc-material" name="material" required>
+                                <option value="">Seleccionar material...</option>
+                            </select>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label>Peso del objeto (gramos):</label>
+                            <input type="number" id="calc-peso" name="peso" min="1" step="0.1" required>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label>Tiempo de impresión (horas):</label>
+                            <input type="number" id="calc-tiempo" name="tiempo" min="0.1" step="0.1" required>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label>Costo por hora (₡):</label>
+                            <input type="number" id="calc-costo-hora" name="costo-hora" min="0" step="100">
+                        </div>
+                        
+                        <div class="form-group">
+                            <label>Margen de ganancia (%):</label>
+                            <input type="number" id="calc-margen" name="margen" min="0" max="1000" step="5">
+                        </div>
+                        
+                        <button type="submit" class="btn btn-primary">Calcular Precio</button>
+                    </form>
+                    
+                    <div id="calc-results" class="calc-results" style="display: none;">
+                        <h3>Resultado del Cálculo</h3>
+                        <div class="result-item">
+                            <span>Costo de material:</span>
+                            <span id="costo-material">₡0</span>
+                        </div>
+                        <div class="result-item">
+                            <span>Costo de impresión:</span>
+                            <span id="costo-impresion">₡0</span>
+                        </div>
+                        <div class="result-item">
+                            <span>Subtotal:</span>
+                            <span id="subtotal">₡0</span>
+                        </div>
+                        <div class="result-item total">
+                            <span>Precio final sugerido:</span>
+                            <span id="precio-final">₡0</span>
+                        </div>
+                        
+                        <div class="calc-actions">
+                            <button class="btn btn-secondary" onclick="saveAsProduct()">Guardar como producto</button>
+                            <button class="btn btn-primary" onclick="createOrder()">Crear pedido</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Pedidos Page -->
+            <div id="pedidos-page" class="page">
+                <div class="page-header">
+                    <h2>Pedidos Personalizados</h2>
+                    <button class="btn btn-primary" onclick="openPedidoModal()">
+                        <i class="fas fa-plus"></i> Nuevo Pedido
+                    </button>
+                </div>
+                
+                <div class="table-container">
+                    <table class="data-table">
+                        <thead>
+                            <tr>
+                                <th>Cliente</th>
+                                <th>Descripción</th>
+                                <th>Material</th>
+                                <th>Precio</th>
+                                <th>Estado</th>
+                                <th>Fecha</th>
+                                <th>Acciones</th>
+                            </tr>
+                        </thead>
+                        <tbody id="pedidos-tbody">
+                            <tr>
+                                <td colspan="7" class="empty-state">No hay pedidos registrados</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- Facturación Page -->
+            <div id="facturacion-page" class="page">
+                <div class="page-header">
+                    <h2>Facturación</h2>
+                    <button class="btn btn-primary" onclick="openFacturaModal()">
+                        <i class="fas fa-plus"></i> Nueva Factura
+                    </button>
+                </div>
+                
+                <div class="factura-container">
+                    <div class="factura-list">
+                        <h3>Historial de Facturas</h3>
+                        <div id="facturas-list" class="facturas-grid">
+                            <p>No hay facturas registradas</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Clientes Page -->
+            <div id="clientes-page" class="page">
+                <div class="page-header">
+                    <h2>Gestión de Clientes</h2>
+                    <button class="btn btn-primary" onclick="openClienteModal()">
+                        <i class="fas fa-plus"></i> Agregar Cliente
+                    </button>
+                </div>
+                
+                <div class="clientes-content">
+                    <div class="clientes-stats">
+                        <div class="stats-grid">
+                            <div class="stat-card">
+                                <div class="stat-icon">
+                                    <i class="fas fa-users"></i>
+                                </div>
+                                <div class="stat-info">
+                                    <h3 id="total-clientes">0</h3>
+                                    <p>Total Clientes</p>
+                                </div>
+                            </div>
+                            <div class="stat-card">
+                                <div class="stat-icon">
+                                    <i class="fas fa-star"></i>
+                                </div>
+                                <div class="stat-info">
+                                    <h3 id="clientes-activos">0</h3>
+                                    <p>Clientes Activos</p>
+                                </div>
+                            </div>
+                            <div class="stat-card">
+                                <div class="stat-icon">
+                                    <i class="fas fa-dollar-sign"></i>
+                                </div>
+                                <div class="stat-info">
+                                    <h3 id="valor-promedio-cliente">₡0</h3>
+                                    <p>Valor Promedio</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="table-container">
+                        <table class="data-table">
+                            <thead>
+                                <tr>
+                                    <th>Nombre</th>
+                                    <th>Email</th>
+                                    <th>Teléfono</th>
+                                    <th>Pedidos</th>
+                                    <th>Total Gastado</th>
+                                    <th>Último Pedido</th>
+                                    <th>Acciones</th>
+                                </tr>
+                            </thead>
+                            <tbody id="clientes-tbody">
+                                <tr>
+                                    <td colspan="7" class="empty-state">No hay clientes registrados</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Cotizaciones Page -->
+            <div id="cotizaciones-page" class="page">
+                <div class="page-header">
+                    <h2>Cotizaciones y Presupuestos</h2>
+                    <button class="btn btn-primary" onclick="openCotizacionModal()">
+                        <i class="fas fa-plus"></i> Nueva Cotización
+                    </button>
+                </div>
+                
+                <div class="cotizaciones-content">
+                    <div class="cotizaciones-filters">
+                        <select id="filtro-estado-cotizacion">
+                            <option value="">Todos los estados</option>
+                            <option value="Borrador">Borrador</option>
+                            <option value="Enviada">Enviada</option>
+                            <option value="Aceptada">Aceptada</option>
+                            <option value="Rechazada">Rechazada</option>
+                            <option value="Vencida">Vencida</option>
+                        </select>
+                        <select id="filtro-cliente-cotizacion">
+                            <option value="">Todos los clientes</option>
+                        </select>
+                    </div>
+                    
+                    <div class="table-container">
+                        <table class="data-table">
+                            <thead>
+                                <tr>
+                                    <th>Número</th>
+                                    <th>Cliente</th>
+                                    <th>Descripción</th>
+                                    <th>Total</th>
+                                    <th>Estado</th>
+                                    <th>Fecha</th>
+                                    <th>Vence</th>
+                                    <th>Acciones</th>
+                                </tr>
+                            </thead>
+                            <tbody id="cotizaciones-tbody">
+                                <tr>
+                                    <td colspan="8" class="empty-state">No hay cotizaciones registradas</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Proveedores Page -->
+            <div id="proveedores-page" class="page">
+                <div class="page-header">
+                    <h2>Proveedores y Compras</h2>
+                    <div class="page-actions">
+                        <button class="btn btn-secondary" onclick="openCompraModal()">
+                            <i class="fas fa-shopping-cart"></i> Registrar Compra
+                        </button>
+                        <button class="btn btn-primary" onclick="openProveedorModal()">
+                            <i class="fas fa-plus"></i> Agregar Proveedor
+                        </button>
+                    </div>
+                </div>
+                
+                <div class="proveedores-content">
+                    <div class="proveedores-section">
+                        <h3>Proveedores</h3>
+                        <div class="table-container">
+                            <table class="data-table">
+                                <thead>
+                                    <tr>
+                                        <th>Nombre</th>
+                                        <th>Contacto</th>
+                                        <th>Especialidad</th>
+                                        <th>Compras</th>
+                                        <th>Total Gastado</th>
+                                        <th>Acciones</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="proveedores-tbody">
+                                    <tr>
+                                        <td colspan="6" class="empty-state">No hay proveedores registrados</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                    
+                    <div class="compras-section">
+                        <h3>Historial de Compras</h3>
+                        <div class="table-container">
+                            <table class="data-table">
+                                <thead>
+                                    <tr>
+                                        <th>Fecha</th>
+                                        <th>Proveedor</th>
+                                        <th>Descripción</th>
+                                        <th>Cantidad</th>
+                                        <th>Costo Total</th>
+                                        <th>Acciones</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="compras-tbody">
+                                    <tr>
+                                        <td colspan="6" class="empty-state">No hay compras registradas</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Equipos Page -->
+            <div id="equipos-page" class="page">
+                <div class="page-header">
+                    <h2>Mantenimiento de Equipos</h2>
+                    <div class="page-actions">
+                        <button class="btn btn-secondary" onclick="openMantenimientoModal()">
+                            <i class="fas fa-wrench"></i> Registrar Mantenimiento
+                        </button>
+                        <button class="btn btn-primary" onclick="openEquipoModal()">
+                            <i class="fas fa-plus"></i> Agregar Equipo
+                        </button>
+                    </div>
+                </div>
+                
+                <div class="equipos-content">
+                    <div class="equipos-section">
+                        <h3>Inventario de Equipos</h3>
+                        <div class="table-container">
+                            <table class="data-table">
+                                <thead>
+                                    <tr>
+                                        <th>Nombre</th>
+                                        <th>Tipo</th>
+                                        <th>Modelo</th>
+                                        <th>Estado</th>
+                                        <th>Último Mantenimiento</th>
+                                        <th>Próximo Mantenimiento</th>
+                                        <th>Acciones</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="equipos-tbody">
+                                    <tr>
+                                        <td colspan="7" class="empty-state">No hay equipos registrados</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                    
+                    <div class="mantenimientos-section">
+                        <h3>Historial de Mantenimientos</h3>
+                        <div class="table-container">
+                            <table class="data-table">
+                                <thead>
+                                    <tr>
+                                        <th>Fecha</th>
+                                        <th>Equipo</th>
+                                        <th>Tipo</th>
+                                        <th>Descripción</th>
+                                        <th>Costo</th>
+                                        <th>Técnico</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="mantenimientos-tbody">
+                                    <tr>
+                                        <td colspan="6" class="empty-state">No hay mantenimientos registrados</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Reportes Page -->
+            <div id="reportes-page" class="page">
+                <div class="page-header">
+                    <h2>Reportes y Analytics</h2>
+                    <div class="page-actions">
+                        <button class="btn btn-secondary" onclick="exportarReporte()">
+                            <i class="fas fa-download"></i> Exportar
+                        </button>
+                        <button class="btn btn-primary" onclick="actualizarReportes()">
+                            <i class="fas fa-sync"></i> Actualizar
+                        </button>
+                    </div>
+                </div>
+                
+                <div class="reportes-content">
+                    <div class="reportes-filters">
+                        <select id="periodo-reporte">
+                            <option value="7">Últimos 7 días</option>
+                            <option value="30">Últimos 30 días</option>
+                            <option value="90">Últimos 3 meses</option>
+                            <option value="365">Último año</option>
+                        </select>
+                        <select id="tipo-reporte">
+                            <option value="ventas">Ventas</option>
+                            <option value="productos">Productos</option>
+                            <option value="clientes">Clientes</option>
+                            <option value="materiales">Materiales</option>
+                        </select>
+                    </div>
+                    
+                    <div class="reportes-dashboard">
+                        <div class="stats-grid">
+                            <div class="stat-card">
+                                <div class="stat-icon">
+                                    <i class="fas fa-chart-line"></i>
+                                </div>
+                                <div class="stat-info">
+                                    <h3 id="ventas-periodo">₡0</h3>
+                                    <p>Ventas del Período</p>
+                                </div>
+                            </div>
+                            <div class="stat-card">
+                                <div class="stat-icon">
+                                    <i class="fas fa-percentage"></i>
+                                </div>
+                                <div class="stat-info">
+                                    <h3 id="margen-promedio">0%</h3>
+                                    <p>Margen Promedio</p>
+                                </div>
+                            </div>
+                            <div class="stat-card">
+                                <div class="stat-icon">
+                                    <i class="fas fa-trophy"></i>
+                                </div>
+                                <div class="stat-info">
+                                    <h3 id="producto-top">-</h3>
+                                    <p>Producto Más Vendido</p>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="reportes-charts">
+                            <div class="chart-container">
+                                <h4>Top Productos</h4>
+                                <div id="productos-chart" class="chart-content">
+                                    <p>Cargando datos...</p>
+                                </div>
+                            </div>
+                            
+                            <div class="chart-container">
+                                <h4>Top Clientes</h4>
+                                <div id="clientes-chart" class="chart-content">
+                                    <p>Cargando datos...</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Finanzas Page -->
+            <div id="finanzas-page" class="page">
+                <div class="page-header">
+                    <h2>Gestión Financiera</h2>
+                    <div class="page-actions">
+                        <button class="btn btn-secondary" onclick="openGastoModal()">
+                            <i class="fas fa-minus"></i> Registrar Gasto
+                        </button>
+                        <button class="btn btn-primary" onclick="openIngresoModal()">
+                            <i class="fas fa-plus"></i> Registrar Ingreso
+                        </button>
+                    </div>
+                </div>
+                
+                <div class="finanzas-content">
+                    <div class="finanzas-resumen">
+                        <div class="stats-grid">
+                            <div class="stat-card">
+                                <div class="stat-icon">
+                                    <i class="fas fa-arrow-up" style="color: var(--success);"></i>
+                                </div>
+                                <div class="stat-info">
+                                    <h3 id="ingresos-mes">₡0</h3>
+                                    <p>Ingresos del Mes</p>
+                                </div>
+                            </div>
+                            <div class="stat-card">
+                                <div class="stat-icon">
+                                    <i class="fas fa-arrow-down" style="color: var(--error);"></i>
+                                </div>
+                                <div class="stat-info">
+                                    <h3 id="gastos-mes">₡0</h3>
+                                    <p>Gastos del Mes</p>
+                                </div>
+                            </div>
+                            <div class="stat-card">
+                                <div class="stat-icon">
+                                    <i class="fas fa-balance-scale"></i>
+                                </div>
+                                <div class="stat-info">
+                                    <h3 id="balance-mes">₡0</h3>
+                                    <p>Balance del Mes</p>
+                                </div>
+                            </div>
+                            <div class="stat-card">
+                                <div class="stat-icon">
+                                    <i class="fas fa-piggy-bank"></i>
+                                </div>
+                                <div class="stat-info">
+                                    <h3 id="flujo-caja">₡0</h3>
+                                    <p>Flujo de Caja</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="finanzas-detalle">
+                        <div class="movimientos-section">
+                            <h3>Movimientos Recientes</h3>
+                            <div class="table-container">
+                                <table class="data-table">
+                                    <thead>
+                                        <tr>
+                                            <th>Fecha</th>
+                                            <th>Tipo</th>
+                                            <th>Categoría</th>
+                                            <th>Descripción</th>
+                                            <th>Monto</th>
+                                            <th>Acciones</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="movimientos-tbody">
+                                        <tr>
+                                            <td colspan="6" class="empty-state">No hay movimientos registrados</td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Configuración Page -->
+            <div id="configuracion-page" class="page">
+                <div class="page-header">
+                    <h2>Configuración</h2>
+                    <p>Ajustes generales del sistema</p>
+                </div>
+                
+                <div class="config-container">
+                    <form id="config-form" class="config-form">
+                        <div class="config-section">
+                            <h3>Datos del Negocio</h3>
+                            <div class="form-group">
+                                <label>Nombre del negocio:</label>
+                                <input type="text" id="config-nombre" name="nombre" placeholder="3D Control Center">
+                            </div>
+                            <div class="form-group">
+                                <label>Teléfono:</label>
+                                <input type="text" id="config-telefono" name="telefono" placeholder="+506 1234-5678">
+                            </div>
+                            <div class="form-group">
+                                <label>Dirección:</label>
+                                <textarea id="config-direccion" name="direccion" placeholder="Dirección del negocio"></textarea>
+                            </div>
+                        </div>
+                        
+                        <div class="config-section">
+                            <h3>Configuración de Costos</h3>
+                            <div class="form-group">
+                                <label>Costo por hora predeterminado (₡):</label>
+                                <input type="number" id="config-costo-hora" name="costo-hora" min="0" step="100" value="1000">
+                            </div>
+                            <div class="form-group">
+                                <label>Margen de ganancia predeterminado (%):</label>
+                                <input type="number" id="config-margen" name="margen" min="0" max="1000" step="5" value="30">
+                            </div>
+                            <div class="form-group">
+                                <label>IVA (%):</label>
+                                <input type="number" id="config-iva" name="iva" min="0" max="100" step="0.1" value="13">
+                            </div>
+                        </div>
+                        
+                        <div class="config-actions">
+                            <button type="submit" class="btn btn-primary">Guardar Configuración</button>
+                            <button type="button" class="btn btn-danger" onclick="resetData()">
+                                <i class="fas fa-trash"></i> Resetear Todos los Datos
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <!-- Modal containers -->
+    <div id="modal-overlay" class="modal-overlay"></div>
+    
+    <!-- Cliente Modal -->
+    <div id="cliente-modal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 id="cliente-modal-title">Agregar Cliente</h3>
+                <button class="modal-close" onclick="closeModal()">&times;</button>
+            </div>
+            <form id="cliente-form" class="modal-form">
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="cliente-nombre">Nombre Completo</label>
+                        <input type="text" id="cliente-nombre" name="nombre" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="cliente-email">Email</label>
+                        <input type="email" id="cliente-email" name="email" required>
+                    </div>
+                </div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="cliente-telefono">Teléfono</label>
+                        <input type="tel" id="cliente-telefono" name="telefono" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="cliente-cedula">Cédula</label>
+                        <input type="text" id="cliente-cedula" name="cedula">
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label for="cliente-direccion">Dirección</label>
+                    <textarea id="cliente-direccion" name="direccion" rows="3"></textarea>
+                </div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="cliente-empresa">Empresa</label>
+                        <input type="text" id="cliente-empresa" name="empresa">
+                    </div>
+                    <div class="form-group">
+                        <label for="cliente-tipo">Tipo de Cliente</label>
+                        <select id="cliente-tipo" name="tipo">
+                            <option value="Individual">Individual</option>
+                            <option value="Empresa">Empresa</option>
+                            <option value="Gobierno">Gobierno</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="modal-actions">
+                    <button type="button" class="btn btn-secondary" onclick="closeModal()">Cancelar</button>
+                    <button type="submit" class="btn btn-primary">Guardar</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Cotización Modal -->
+    <div id="cotizacion-modal" class="modal">
+        <div class="modal-content modal-large">
+            <div class="modal-header">
+                <h3 id="cotizacion-modal-title">Nueva Cotización</h3>
+                <button class="modal-close" onclick="closeModal()">&times;</button>
+            </div>
+            <form id="cotizacion-form" class="modal-form">
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="cotizacion-cliente">Cliente</label>
+                        <select id="cotizacion-cliente" name="cliente" required>
+                            <option value="">Seleccionar cliente</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="cotizacion-validez">Validez (días)</label>
+                        <input type="number" id="cotizacion-validez" name="validez" value="30" min="1" required>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label for="cotizacion-descripcion">Descripción del Proyecto</label>
+                    <textarea id="cotizacion-descripcion" name="descripcion" rows="3" required></textarea>
+                </div>
+                
+                <div class="cotizacion-items">
+                    <h4>Items de la Cotización</h4>
+                    <div id="cotizacion-items-container">
+                        <div class="cotizacion-item">
+                            <div class="form-row">
+                                <div class="form-group">
+                                    <label>Descripción</label>
+                                    <input type="text" name="item-descripcion" required>
+                                </div>
+                                <div class="form-group">
+                                    <label>Cantidad</label>
+                                    <input type="number" name="item-cantidad" min="1" value="1" required>
+                                </div>
+                                <div class="form-group">
+                                    <label>Precio Unitario</label>
+                                    <input type="number" name="item-precio" min="0" step="0.01" required>
+                                </div>
+                                <div class="form-group">
+                                    <button type="button" class="btn btn-danger btn-small" onclick="removeItem(this)">
+                                        <i class="fas fa-trash"></i>
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <button type="button" class="btn btn-secondary" onclick="addCotizacionItem()">
+                        <i class="fas fa-plus"></i> Agregar Item
+                    </button>
+                </div>
+                
+                <div class="cotizacion-total">
+                    <h4>Total: ₡<span id="cotizacion-total-amount">0</span></h4>
+                </div>
+                
+                <div class="modal-actions">
+                    <button type="button" class="btn btn-secondary" onclick="closeModal()">Cancelar</button>
+                    <button type="submit" class="btn btn-primary">Guardar</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Proveedor Modal -->
+    <div id="proveedor-modal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 id="proveedor-modal-title">Agregar Proveedor</h3>
+                <button class="modal-close" onclick="closeModal()">&times;</button>
+            </div>
+            <form id="proveedor-form" class="modal-form">
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="proveedor-nombre">Nombre de la Empresa</label>
+                        <input type="text" id="proveedor-nombre" name="nombre" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="proveedor-contacto">Persona de Contacto</label>
+                        <input type="text" id="proveedor-contacto" name="contacto" required>
+                    </div>
+                </div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="proveedor-email">Email</label>
+                        <input type="email" id="proveedor-email" name="email" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="proveedor-telefono">Teléfono</label>
+                        <input type="tel" id="proveedor-telefono" name="telefono" required>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label for="proveedor-direccion">Dirección</label>
+                    <textarea id="proveedor-direccion" name="direccion" rows="3"></textarea>
+                </div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="proveedor-especialidad">Especialidad</label>
+                        <select id="proveedor-especialidad" name="especialidad" required>
+                            <option value="">Seleccionar especialidad</option>
+                            <option value="Filamentos">Filamentos</option>
+                            <option value="Impresoras">Impresoras</option>
+                            <option value="Componentes">Componentes</option>
+                            <option value="Herramientas">Herramientas</option>
+                            <option value="Software">Software</option>
+                            <option value="Servicios">Servicios</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="proveedor-terminos">Términos de Pago</label>
+                        <input type="text" id="proveedor-terminos" name="terminos" placeholder="Ej: 30 días">
+                    </div>
+                </div>
+                <div class="modal-actions">
+                    <button type="button" class="btn btn-secondary" onclick="closeModal()">Cancelar</button>
+                    <button type="submit" class="btn btn-primary">Guardar</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Compra Modal -->
+    <div id="compra-modal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>Registrar Compra</h3>
+                <button class="modal-close" onclick="closeModal()">&times;</button>
+            </div>
+            <form id="compra-form" class="modal-form">
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="compra-proveedor">Proveedor</label>
+                        <select id="compra-proveedor" name="proveedor" required>
+                            <option value="">Seleccionar proveedor</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="compra-fecha">Fecha</label>
+                        <input type="date" id="compra-fecha" name="fecha" required>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label for="compra-descripcion">Descripción</label>
+                    <textarea id="compra-descripcion" name="descripcion" rows="3" required></textarea>
+                </div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="compra-cantidad">Cantidad</label>
+                        <input type="number" id="compra-cantidad" name="cantidad" min="1" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="compra-costo">Costo Total</label>
+                        <input type="number" id="compra-costo" name="costo" min="0" step="0.01" required>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label for="compra-factura">Número de Factura</label>
+                    <input type="text" id="compra-factura" name="factura">
+                </div>
+                <div class="modal-actions">
+                    <button type="button" class="btn btn-secondary" onclick="closeModal()">Cancelar</button>
+                    <button type="submit" class="btn btn-primary">Guardar</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Equipo Modal -->
+    <div id="equipo-modal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 id="equipo-modal-title">Agregar Equipo</h3>
+                <button class="modal-close" onclick="closeModal()">&times;</button>
+            </div>
+            <form id="equipo-form" class="modal-form">
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="equipo-nombre">Nombre del Equipo</label>
+                        <input type="text" id="equipo-nombre" name="nombre" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="equipo-tipo">Tipo</label>
+                        <select id="equipo-tipo" name="tipo" required>
+                            <option value="">Seleccionar tipo</option>
+                            <option value="Impresora 3D">Impresora 3D</option>
+                            <option value="Computadora">Computadora</option>
+                            <option value="Herramienta">Herramienta</option>
+                            <option value="Accesorio">Accesorio</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="equipo-marca">Marca</label>
+                        <input type="text" id="equipo-marca" name="marca" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="equipo-modelo">Modelo</label>
+                        <input type="text" id="equipo-modelo" name="modelo" required>
+                    </div>
+                </div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="equipo-serie">Número de Serie</label>
+                        <input type="text" id="equipo-serie" name="serie">
+                    </div>
+                    <div class="form-group">
+                        <label for="equipo-compra">Fecha de Compra</label>
+                        <input type="date" id="equipo-compra" name="fechaCompra">
+                    </div>
+                </div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="equipo-costo">Costo de Adquisición</label>
+                        <input type="number" id="equipo-costo" name="costo" min="0" step="0.01">
+                    </div>
+                    <div class="form-group">
+                        <label for="equipo-estado">Estado</label>
+                        <select id="equipo-estado" name="estado" required>
+                            <option value="Operativo">Operativo</option>
+                            <option value="Mantenimiento">En Mantenimiento</option>
+                            <option value="Fuera de Servicio">Fuera de Servicio</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label for="equipo-ubicacion">Ubicación</label>
+                    <input type="text" id="equipo-ubicacion" name="ubicacion">
+                </div>
+                <div class="modal-actions">
+                    <button type="button" class="btn btn-secondary" onclick="closeModal()">Cancelar</button>
+                    <button type="submit" class="btn btn-primary">Guardar</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Mantenimiento Modal -->
+    <div id="mantenimiento-modal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>Registrar Mantenimiento</h3>
+                <button class="modal-close" onclick="closeModal()">&times;</button>
+            </div>
+            <form id="mantenimiento-form" class="modal-form">
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="mantenimiento-equipo">Equipo</label>
+                        <select id="mantenimiento-equipo" name="equipo" required>
+                            <option value="">Seleccionar equipo</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="mantenimiento-fecha">Fecha</label>
+                        <input type="date" id="mantenimiento-fecha" name="fecha" required>
+                    </div>
+                </div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="mantenimiento-tipo">Tipo de Mantenimiento</label>
+                        <select id="mantenimiento-tipo" name="tipo" required>
+                            <option value="">Seleccionar tipo</option>
+                            <option value="Preventivo">Preventivo</option>
+                            <option value="Correctivo">Correctivo</option>
+                            <option value="Limpieza">Limpieza</option>
+                            <option value="Calibración">Calibración</option>
+                            <option value="Reparación">Reparación</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="mantenimiento-costo">Costo</label>
+                        <input type="number" id="mantenimiento-costo" name="costo" min="0" step="0.01">
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label for="mantenimiento-descripcion">Descripción del Trabajo</label>
+                    <textarea id="mantenimiento-descripcion" name="descripcion" rows="4" required></textarea>
+                </div>
+                <div class="form-group">
+                    <label for="mantenimiento-tecnico">Técnico</label>
+                    <input type="text" id="mantenimiento-tecnico" name="tecnico">
+                </div>
+                <div class="modal-actions">
+                    <button type="button" class="btn btn-secondary" onclick="closeModal()">Cancelar</button>
+                    <button type="submit" class="btn btn-primary">Guardar</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Ingreso Modal -->
+    <div id="ingreso-modal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>Registrar Ingreso</h3>
+                <button class="modal-close" onclick="closeModal()">&times;</button>
+            </div>
+            <form id="ingreso-form" class="modal-form">
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="ingreso-fecha">Fecha</label>
+                        <input type="date" id="ingreso-fecha" name="fecha" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="ingreso-categoria">Categoría</label>
+                        <select id="ingreso-categoria" name="categoria" required>
+                            <option value="">Seleccionar categoría</option>
+                            <option value="Ventas">Ventas</option>
+                            <option value="Servicios">Servicios</option>
+                            <option value="Otros">Otros</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label for="ingreso-descripcion">Descripción</label>
+                    <input type="text" id="ingreso-descripcion" name="descripcion" required>
+                </div>
+                <div class="form-group">
+                    <label for="ingreso-monto">Monto</label>
+                    <input type="number" id="ingreso-monto" name="monto" min="0" step="0.01" required>
+                </div>
+                <div class="modal-actions">
+                    <button type="button" class="btn btn-secondary" onclick="closeModal()">Cancelar</button>
+                    <button type="submit" class="btn btn-primary">Guardar</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Gasto Modal -->
+    <div id="gasto-modal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>Registrar Gasto</h3>
+                <button class="modal-close" onclick="closeModal()">&times;</button>
+            </div>
+            <form id="gasto-form" class="modal-form">
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="gasto-fecha">Fecha</label>
+                        <input type="date" id="gasto-fecha" name="fecha" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="gasto-categoria">Categoría</label>
+                        <select id="gasto-categoria" name="categoria" required>
+                            <option value="">Seleccionar categoría</option>
+                            <option value="Materiales">Materiales</option>
+                            <option value="Equipos">Equipos</option>
+                            <option value="Servicios">Servicios</option>
+                            <option value="Marketing">Marketing</option>
+                            <option value="Administración">Administración</option>
+                            <option value="Otros">Otros</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label for="gasto-descripcion">Descripción</label>
+                    <input type="text" id="gasto-descripcion" name="descripcion" required>
+                </div>
+                <div class="form-group">
+                    <label for="gasto-monto">Monto</label>
+                    <input type="number" id="gasto-monto" name="monto" min="0" step="0.01" required>
+                </div>
+                <div class="modal-actions">
+                    <button type="button" class="btn btn-secondary" onclick="closeModal()">Cancelar</button>
+                    <button type="submit" class="btn btn-primary">Guardar</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Producto Modal -->
+    <div id="producto-modal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 id="producto-modal-title">Agregar Producto</h3>
+                <button class="modal-close" onclick="closeModal()">&times;</button>
+            </div>
+            <form id="producto-modal-form" class="modal-form">
+                <input type="hidden" id="producto-id" name="id">
+                <div class="form-group">
+                    <label>Nombre:</label>
+                    <input type="text" id="producto-nombre" name="nombre" required>
+                </div>
+                <div class="form-group">
+                    <label>Descripción:</label>
+                    <textarea id="producto-descripcion" name="descripcion"></textarea>
+                </div>
+                <div class="form-group">
+                    <label>Categoría:</label>
+                    <select id="producto-categoria" name="categoria" required>
+                        <option value="">Seleccionar...</option>
+                        <option value="Miniatura">Miniatura</option>
+                        <option value="Decorativo">Decorativo</option>
+                        <option value="Funcional">Funcional</option>
+                        <option value="Prototipo">Prototipo</option>
+                        <option value="Repuesto">Repuesto</option>
+                        <option value="Otro">Otro</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>Precio (₡):</label>
+                    <input type="number" id="producto-precio" name="precio" min="0" step="100" required>
+                </div>
+                <div class="form-group">
+                    <label>Stock:</label>
+                    <input type="number" id="producto-stock" name="stock" min="0" required>
+                </div>
+                <div class="modal-actions">
+                    <button type="button" class="btn btn-secondary" onclick="closeModal()">Cancelar</button>
+                    <button type="submit" class="btn btn-primary">Guardar</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Insumo Modal -->
+    <div id="insumo-modal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 id="insumo-modal-title">Agregar Material</h3>
+                <button class="modal-close" onclick="closeModal()">&times;</button>
+            </div>
+            <form id="insumo-modal-form" class="modal-form">
+                <input type="hidden" id="insumo-id" name="id">
+                <div class="form-group">
+                    <label>Tipo de material:</label>
+                    <select id="insumo-tipo" name="tipo" required>
+                        <option value="">Seleccionar...</option>
+                        <option value="PLA">PLA</option>
+                        <option value="ABS">ABS</option>
+                        <option value="PETG">PETG</option>
+                        <option value="TPU">TPU</option>
+                        <option value="PLA+">PLA+</option>
+                        <option value="Wood">Wood</option>
+                        <option value="Metal">Metal</option>
+                        <option value="Otro">Otro</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>Color:</label>
+                    <input type="text" id="insumo-color" name="color" required>
+                </div>
+                <div class="form-group">
+                    <label>Peso disponible (kg):</label>
+                    <input type="number" id="insumo-peso" name="peso" min="0" step="0.1" required>
+                </div>
+                <div class="form-group">
+                    <label>Costo por kg (₡):</label>
+                    <input type="number" id="insumo-costo" name="costo" min="0" step="100" required>
+                </div>
+                <div class="modal-actions">
+                    <button type="button" class="btn btn-secondary" onclick="closeModal()">Cancelar</button>
+                    <button type="submit" class="btn btn-primary">Guardar</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Pedido Modal -->
+    <div id="pedido-modal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 id="pedido-modal-title">Nuevo Pedido</h3>
+                <button class="modal-close" onclick="closeModal()">&times;</button>
+            </div>
+            <form id="pedido-modal-form" class="modal-form">
+                <input type="hidden" id="pedido-id" name="id">
+                <div class="form-group">
+                    <label>Nombre del cliente:</label>
+                    <input type="text" id="pedido-cliente" name="cliente" required>
+                </div>
+                <div class="form-group">
+                    <label>Descripción del pedido:</label>
+                    <textarea id="pedido-descripcion" name="descripcion" required></textarea>
+                </div>
+                <div class="form-group">
+                    <label>Material:</label>
+                    <select id="pedido-material" name="material" required>
+                        <option value="">Seleccionar material...</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>Peso (gramos):</label>
+                    <input type="number" id="pedido-peso" name="peso" min="1" step="0.1" required>
+                </div>
+                <div class="form-group">
+                    <label>Precio total (₡):</label>
+                    <input type="number" id="pedido-precio" name="precio" min="0" step="100" required>
+                </div>
+                <div class="form-group">
+                    <label>Estado:</label>
+                    <select id="pedido-estado" name="estado" required>
+                        <option value="Pendiente">Pendiente</option>
+                        <option value="En impresión">En impresión</option>
+                        <option value="Entregado">Entregado</option>
+                    </select>
+                </div>
+                <div class="modal-actions">
+                    <button type="button" class="btn btn-secondary" onclick="closeModal()">Cancelar</button>
+                    <button type="submit" class="btn btn-primary">Guardar</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Factura Modal -->
+    <div id="factura-modal" class="modal">
+        <div class="modal-content large">
+            <div class="modal-header">
+                <h3>Nueva Factura</h3>
+                <button class="modal-close" onclick="closeModal()">&times;</button>
+            </div>
+            <form id="factura-modal-form" class="modal-form">
+                <div class="form-group">
+                    <label>Cliente:</label>
+                    <input type="text" id="factura-cliente" required>
+                </div>
+                <div class="form-group">
+                    <label>Teléfono:</label>
+                    <input type="text" id="factura-telefono">
+                </div>
+                
+                <div class="factura-items">
+                    <h4>Items de la factura</h4>
+                    <div id="factura-items-container">
+                        <div class="factura-item">
+                            <input type="text" placeholder="Descripción del producto/servicio" class="item-descripcion" required>
+                            <input type="number" placeholder="Cantidad" class="item-cantidad" min="1" value="1" required>
+                            <input type="number" placeholder="Precio unitario" class="item-precio" min="0" step="100" required>
+                            <button type="button" class="btn btn-danger btn-small" onclick="removeFacturaItem(this)">×</button>
+                        </div>
+                    </div>
+                    <button type="button" class="btn btn-secondary" onclick="addFacturaItem()">+ Agregar Item</button>
+                </div>
+                
+                <div class="modal-actions">
+                    <button type="button" class="btn btn-secondary" onclick="closeModal()">Cancelar</button>
+                    <button type="submit" class="btn btn-primary">Generar Factura</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Factura Preview Modal -->
+    <div id="factura-preview-modal" class="modal">
+        <div class="modal-content large">
+            <div class="modal-header">
+                <h3>Vista Previa de Factura</h3>
+                <button class="modal-close" onclick="closeModal()">&times;</button>
+            </div>
+            <div id="factura-preview-content" class="factura-preview">
+                <!-- Contenido de la factura se genera dinámicamente -->
+            </div>
+            <div class="modal-actions">
+                <button type="button" class="btn btn-secondary" onclick="closeModal()">Cerrar</button>
+                <button type="button" class="btn btn-primary" onclick="printFactura()">
+                    <i class="fas fa-print"></i> Imprimir
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Consumo Modal -->
+    <div id="consumo-modal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>Registrar Consumo de Material</h3>
+                <button class="modal-close" onclick="closeModal()">&times;</button>
+            </div>
+            <form id="consumo-modal-form" class="modal-form">
+                <div class="form-group">
+                    <label>Material:</label>
+                    <select id="consumo-material" name="materialId" required>
+                        <option value="">Seleccionar material...</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>Cantidad consumida (gramos):</label>
+                    <input type="number" id="consumo-cantidad" name="cantidad" min="0.1" step="0.1" required>
+                </div>
+                <div class="form-group">
+                    <label>Motivo del consumo:</label>
+                    <select id="consumo-motivo" name="motivo">
+                        <option value="Impresión">Impresión de pedido</option>
+                        <option value="Prueba">Impresión de prueba</option>
+                        <option value="Desperdicio">Material desperdiciado</option>
+                        <option value="Calibración">Calibración de impresora</option>
+                        <option value="Otro">Otro motivo</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>Descripción (opcional):</label>
+                    <textarea id="consumo-descripcion" name="descripcion" placeholder="Detalles adicionales del consumo..."></textarea>
+                </div>
+                <div class="form-group">
+                    <label>Pedido relacionado (opcional):</label>
+                    <select id="consumo-pedido" name="pedidoId">
+                        <option value="">Sin pedido asociado</option>
+                    </select>
+                </div>
+                <div class="modal-actions">
+                    <button type="button" class="btn btn-secondary" onclick="closeModal()">Cancelar</button>
+                    <button type="submit" class="btn btn-primary">Registrar Consumo</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Scripts -->
+    <script src="app.js"></script>
+</body>
+</html>
