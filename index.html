@@ -6,15 +6,31 @@
     <title>3D Control Center</title>
     <meta name="description" content="Panel de control para negocio de impresión 3D">
     <meta name="theme-color" content="#1a1a1a">
+    
+    <!-- PWA Meta Tags -->
     <meta name="mobile-web-app-capable" content="yes">
+    <meta name="application-name" content="3D Control">
+    
+    <!-- iOS Meta Tags -->
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="apple-mobile-web-app-title" content="3D Control">
     <meta name="format-detection" content="telephone=no">
     
-    <!-- PWA Icons -->
-    <link rel="icon" type="image/png" sizes="32x32" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><rect width='32' height='32' fill='%23ff6b35'/><text x='16' y='20' text-anchor='middle' font-size='18' fill='white'>3D</text></svg>">
-    <link rel="apple-touch-icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 192 192'><rect width='192' height='192' fill='%23ff6b35'/><text x='96' y='120' text-anchor='middle' font-size='80' fill='white'>3D</text></svg>">
+    <!-- iOS Icons -->
+    <link rel="apple-touch-icon" sizes="57x57" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 57 57'%3E%3Crect width='57' height='57' rx='12' fill='%23ff6b35'/%3E%3Ctext x='28.5' y='35' text-anchor='middle' font-size='20' font-weight='bold' fill='white'%3E3D%3C/text%3E%3C/svg%3E">
+    <link rel="apple-touch-icon" sizes="60x60" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 60 60'%3E%3Crect width='60' height='60' rx='13' fill='%23ff6b35'/%3E%3Ctext x='30' y='37' text-anchor='middle' font-size='22' font-weight='bold' fill='white'%3E3D%3C/text%3E%3C/svg%3E">
+    <link rel="apple-touch-icon" sizes="72x72" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 72 72'%3E%3Crect width='72' height='72' rx='16' fill='%23ff6b35'/%3E%3Ctext x='36' y='45' text-anchor='middle' font-size='28' font-weight='bold' fill='white'%3E3D%3C/text%3E%3C/svg%3E">
+    <link rel="apple-touch-icon" sizes="76x76" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 76 76'%3E%3Crect width='76' height='76' rx='17' fill='%23ff6b35'/%3E%3Ctext x='38' y='47' text-anchor='middle' font-size='30' font-weight='bold' fill='white'%3E3D%3C/text%3E%3C/svg%3E">
+    <link rel="apple-touch-icon" sizes="114x114" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 114 114'%3E%3Crect width='114' height='114' rx='25' fill='%23ff6b35'/%3E%3Ctext x='57' y='70' text-anchor='middle' font-size='42' font-weight='bold' fill='white'%3E3D%3C/text%3E%3C/svg%3E">
+    <link rel="apple-touch-icon" sizes="120x120" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 120 120'%3E%3Crect width='120' height='120' rx='26' fill='%23ff6b35'/%3E%3Ctext x='60' y='75' text-anchor='middle' font-size='46' font-weight='bold' fill='white'%3E3D%3C/text%3E%3C/svg%3E">
+    <link rel="apple-touch-icon" sizes="144x144" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 144 144'%3E%3Crect width='144' height='144' rx='32' fill='%23ff6b35'/%3E%3Ctext x='72' y='90' text-anchor='middle' font-size='56' font-weight='bold' fill='white'%3E3D%3C/text%3E%3C/svg%3E">
+    <link rel="apple-touch-icon" sizes="152x152" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 152 152'%3E%3Crect width='152' height='152' rx='33' fill='%23ff6b35'/%3E%3Ctext x='76' y='95' text-anchor='middle' font-size='58' font-weight='bold' fill='white'%3E3D%3C/text%3E%3C/svg%3E">
+    <link rel="apple-touch-icon" sizes="180x180" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 180 180'%3E%3Crect width='180' height='180' rx='40' fill='%23ff6b35'/%3E%3Ctext x='90' y='112' text-anchor='middle' font-size='68' font-weight='bold' fill='white'%3E3D%3C/text%3E%3C/svg%3E">
+    
+    <!-- Standard Icons -->
+    <link rel="icon" type="image/png" sizes="32x32" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' fill='%23ff6b35'/%3E%3Ctext x='16' y='20' text-anchor='middle' font-size='18' fill='white'%3E3D%3C/text%3E%3C/svg%3E">
+    <link rel="icon" type="image/png" sizes="16x16" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Crect width='16' height='16' fill='%23ff6b35'/%3E%3Ctext x='8' y='12' text-anchor='middle' font-size='10' fill='white'%3E3D%3C/text%3E%3C/svg%3E">
     
     <!-- PWA Manifest -->
     <link rel="manifest" href="manifest.json">
