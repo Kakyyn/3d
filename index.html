@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes, maximum-scale=5.0">
-    <title>3D Control Center</title>
+    <title>3D Control Center v2.0</title>
     <meta name="description" content="Panel de control para negocio de impresión 3D">
     <meta name="theme-color" content="#1a1a1a">
     
@@ -42,7 +42,7 @@
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
     
     <!-- Styles -->
-    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="style.css?v=2025112201">
 </head>
 <body>
     <div id="app">
@@ -294,64 +294,411 @@
             <!-- Calculo Page -->
             <div id="calculo-page" class="page">
                 <div class="page-header">
-                    <h2>Calculadora de Costos</h2>
-                    <p>Calcula el precio de impresión 3D</p>
+                    <h2>Calculadora de Precio de Impresión 3D ✅ ACTUALIZADA</h2>
+                    <p>Calcula el precio completo de impresión 3D considerando todos los costos</p>
+                    <div style="background: #4caf50; color: white; padding: 10px; border-radius: 5px; margin: 10px 0; text-align: center;">
+                        🚀 Nueva versión basada en Prusa3D - Más precisa y profesional
+                    </div>
                 </div>
                 
-                <div class="calc-container">
-                    <form id="calc-form" class="calc-form">
-                        <div class="form-group">
-                            <label>Material:</label>
-                            <select id="calc-material" name="material" required>
-                                <option value="">Seleccionar material...</option>
-                            </select>
-                        </div>
-                        
-                        <div class="form-group">
-                            <label>Peso del objeto (gramos):</label>
-                            <input type="number" id="calc-peso" name="peso" min="1" step="0.1" required>
-                        </div>
-                        
-                        <div class="form-group">
-                            <label>Tiempo de impresión (horas):</label>
-                            <input type="number" id="calc-tiempo" name="tiempo" min="0.1" step="0.1" required>
-                        </div>
-                        
-                        <div class="form-group">
-                            <label>Costo por hora (₡):</label>
-                            <input type="number" id="calc-costo-hora" name="costo-hora" min="0" step="100">
-                        </div>
-                        
-                        <div class="form-group">
-                            <label>Margen de ganancia (%):</label>
-                            <input type="number" id="calc-margen" name="margen" min="0" max="1000" step="5">
-                        </div>
-                        
-                        <button type="submit" class="btn btn-primary">Calcular Precio</button>
-                    </form>
+                <div class="calc-main-container">
+                    <!-- Información básica de la impresión -->
+                    <div class="calc-section">
+                        <h3><i class="fas fa-info-circle"></i> Información de la Impresión</h3>
+                        <form id="calc-form" class="calc-form">
+                            <div class="form-row">
+                                <div class="form-group">
+                                    <label for="calc-nombre">Nombre del trabajo:</label>
+                                    <input type="text" id="calc-nombre" name="nombre" placeholder="Ej: Miniatura de dragón">
+                                </div>
+                                <div class="form-group">
+                                    <label for="calc-cantidad">Cantidad de piezas:</label>
+                                    <input type="number" id="calc-cantidad" name="cantidad" min="1" value="1" required>
+                                </div>
+                            </div>
+                            
+                            <!-- Sección de Filamento -->
+                            <div class="calc-subsection">
+                                <h4><i class="fas fa-industry"></i> Filamento</h4>
+                                
+                                <!-- Tipo de filamento -->
+                                <div class="form-row">
+                                    <div class="form-group">
+                                        <label for="calc-material">Tipo de filamento</label>
+                                        <select id="calc-material" name="material" required onchange="CostCalculator.updateMaterialCost(); CostCalculator.updateFilamentCost()">
+                                            <option value="">Seleccionar material...</option>
+                                        </select>
+                                    </div>
+                                    <div class="form-group">
+                                        <label for="calc-peso-bobina">Peso de la bobina</label>
+                                        <div class="input-with-unit">
+                                            <input type="number" id="calc-peso-bobina" name="peso-bobina" value="1000" step="100" min="0" oninput="CostCalculator.updateFilamentCost()">
+                                            <span class="unit-suffix">g</span>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!-- Peso y factor de desperdicio -->
+                                <div class="form-row">
+                                    <div class="form-group">
+                                        <label for="calc-peso">Peso de la impresión (g por pieza):</label>
+                                        <input type="number" id="calc-peso" name="peso" min="0.1" step="0.1" required oninput="CostCalculator.updateFilamentCost()">
+                                    </div>
+                                    <div class="form-group">
+                                        <label for="calc-desperdicio">Factor de desperdicio</label>
+                                        <div class="slider-container">
+                                            <input type="range" id="calc-desperdicio" name="desperdicio" min="0" max="50" value="5" step="1" oninput="CostCalculator.updateFilamentCost(); document.getElementById('desperdicio-display').textContent = this.value + '%'">
+                                            <div class="slider-value" id="desperdicio-display">5%</div>
+                                        </div>
+                                        <div class="help-text">Incluye purga, torre de limpieza, fallos, etc.</div>
+                                    </div>
+                                </div>
+
+                                <!-- Resultado calculado automáticamente -->
+                                <div class="form-row">
+                                    <div class="calc-result-row">
+                                        <span class="result-label">Coste total del filamento:</span>
+                                        <span class="result-value" id="costo-filamento-calculado">CRC 0.00</span>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <!-- Sección de Tiempo de Impresión -->
+                            <div class="calc-subsection">
+                                <h4><i class="fas fa-clock"></i> Tiempo de Impresión</h4>
+                                <div class="form-row">
+                                    <div class="form-group">
+                                        <label for="calc-tiempo">Tiempo de impresión (horas):</label>
+                                        <input type="number" id="calc-tiempo" name="tiempo" min="0.1" step="0.1" required oninput="CostCalculator.updateElectricityCost(); CostCalculator.updateLaborCost()">
+                                    </div>
+                                    <div class="form-group">
+                                        <label for="calc-tiempo-fallo">Factor de fallos</label>
+                                        <div class="slider-container">
+                                            <input type="range" id="calc-tiempo-fallo" name="tiempo-fallo" min="0" max="50" value="5" step="1" oninput="document.getElementById('fallo-display').textContent = this.value + '%'">
+                                            <div class="slider-value" id="fallo-display">5%</div>
+                                        </div>
+                                        <div class="help-text">Tiempo adicional por posibles fallos</div>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <!-- Sección de Electricidad -->
+                            <div class="calc-subsection">
+                                <h4><i class="fas fa-bolt"></i> Electricidad</h4>
+                                
+                                <!-- Consumo de energía -->
+                                <div class="form-row">
+                                    <div class="form-group">
+                                        <label for="calc-consumo-energia">Consumo de energía</label>
+                                        <div class="slider-container">
+                                            <input type="range" id="calc-consumo-energia" name="consumo-energia" min="50" max="500" value="120" step="10" oninput="CostCalculator.updateElectricityCost(); document.getElementById('consumo-display').textContent = this.value + ' W'">
+                                            <div class="slider-value" id="consumo-display">120 W</div>
+                                        </div>
+                                    </div>
+                                    <div class="form-group">
+                                        <label for="calc-costo-energia">Costo energía</label>
+                                        <div class="slider-container">
+                                            <input type="range" id="calc-costo-energia" name="costo-energia" min="50" max="200" value="110" step="5" oninput="CostCalculator.updateElectricityCost(); document.getElementById('costo-energia-display').textContent = this.value + ' CRC'">
+                                            <div class="slider-value" id="costo-energia-display">110 CRC</div>
+                                        </div>
+                                        <div class="help-text">por kWh</div>
+                                    </div>
+                                </div>
+
+                                <!-- Resultado calculado automáticamente -->
+                                <div class="form-row">
+                                    <div class="calc-result-row">
+                                        <span class="result-label">Coste total de electricidad:</span>
+                                        <span class="result-value" id="costo-electricidad-calculado">CRC 0.00</span>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <!-- Sección de Costo de mano de obra -->
+                            <div class="calc-subsection">
+                                <h4><i class="fas fa-user"></i> Coste de mano de obra</h4>
+                                
+                                <!-- Preparación de la impresión -->
+                                <div class="labor-subsection">
+                                    <h5>Preparación de la impresión</h5>
+                                    <div class="form-row">
+                                        <div class="form-group">
+                                            <label for="calc-tiempo-prep">Tiempo</label>
+                                            <div class="input-with-unit">
+                                                <input type="number" id="calc-tiempo-prep" name="tiempo-prep" value="15" step="1" min="0" oninput="CostCalculator.updateLaborCost()">
+                                                <span class="unit-suffix">Min.</span>
+                                            </div>
+                                        </div>
+                                        <div class="form-group">
+                                            <label for="calc-costo-prep">Costo</label>
+                                            <div class="input-with-unit">
+                                                <span class="unit-prefix">CRC</span>
+                                                <input type="number" id="calc-costo-prep" name="costo-prep" value="1000" step="100" min="0" oninput="CostCalculator.updateLaborCost()">
+                                                <span class="unit-suffix">por hora</span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!-- Post-procesamiento -->
+                                <div class="labor-subsection">
+                                    <h5>Post-procesamiento</h5>
+                                    <div class="form-row">
+                                        <div class="form-group">
+                                            <label for="calc-tiempo-post">Tiempo</label>
+                                            <div class="input-with-unit">
+                                                <input type="number" id="calc-tiempo-post" name="tiempo-post" value="10" step="1" min="0" oninput="CostCalculator.updateLaborCost()">
+                                                <span class="unit-suffix">Min.</span>
+                                            </div>
+                                        </div>
+                                        <div class="form-group">
+                                            <label for="calc-costo-post">Costo</label>
+                                            <div class="input-with-unit">
+                                                <span class="unit-prefix">CRC</span>
+                                                <input type="number" id="calc-costo-post" name="costo-post" value="0" step="100" min="0" oninput="CostCalculator.updateLaborCost()">
+                                                <span class="unit-suffix">por hora</span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!-- Resultado calculado automáticamente -->
+                                <div class="form-row">
+                                    <div class="calc-result-row">
+                                        <span class="result-label">Coste total de mano de obra:</span>
+                                        <span class="result-value" id="costo-mano-obra-calculado">CRC 0.00</span>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <!-- Sección de Mantenimiento y Máquina -->
+                            <div class="calc-subsection">
+                                <h4><i class="fas fa-tools"></i> Costo de máquina y mantenimiento</h4>
+                                
+                                <!-- Costo de la impresora -->
+                                <div class="form-row">
+                                    <div class="form-group">
+                                        <label for="calc-costo-impresora">Coste de la impresora</label>
+                                        <div class="input-with-unit">
+                                            <span class="unit-prefix">CRC</span>
+                                            <input type="number" id="calc-costo-impresora" name="costo-impresora" value="250000" step="1000" min="0" oninput="CostCalculator.updateEquipmentCost()">
+                                        </div>
+                                    </div>
+                                    <div class="form-group">
+                                        <label for="calc-retorno-inversion">Retorno de la inversión</label>
+                                        <div class="input-with-unit">
+                                            <input type="number" id="calc-retorno-inversion" name="retorno-inversion" value="2" step="0.1" min="0.1" oninput="CostCalculator.updateEquipmentCost()">
+                                            <span class="unit-suffix">Años</span>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!-- Uso comercial diario -->
+                                <div class="form-row">
+                                    <div class="form-group full-width">
+                                        <label for="calc-uso-comercial">Uso comercial diario</label>
+                                        <div class="slider-container">
+                                            <input type="range" id="calc-uso-comercial" name="uso-comercial" min="1" max="24" value="6" step="1" oninput="CostCalculator.updateEquipmentCost(); document.getElementById('uso-comercial-display').textContent = this.value + ' h'">
+                                            <div class="slider-value" id="uso-comercial-display">6 h</div>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!-- Porcentaje del coste de compra que esperas gastar en reparaciones -->
+                                <div class="form-row">
+                                    <div class="form-group full-width">
+                                        <label for="calc-porcentaje-reparacion">Porcentaje del coste de compra de la impresora que esperas gastar en reparaciones durante su vida útil</label>
+                                        <div class="slider-container">
+                                            <input type="range" id="calc-porcentaje-reparacion" name="porcentaje-reparacion" min="0" max="50" value="5" step="1" oninput="CostCalculator.updateEquipmentCost(); document.getElementById('reparacion-display').textContent = this.value + ' %'">
+                                            <div class="slider-value" id="reparacion-display">5 %</div>
+                                        </div>
+                                        <div class="help-text">Costes de reparación</div>
+                                    </div>
+                                </div>
+
+                                <!-- Resultado calculado automáticamente -->
+                                <div class="form-row">
+                                    <div class="calc-result-row">
+                                        <span class="result-label">Coste total de máquina y mantenimiento:</span>
+                                        <span class="result-value" id="costo-maquina-calculado">CRC 0.00</span>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <!-- Sección de Otros Costos -->
+                            <div class="calc-subsection">
+                                <h4><i class="fas fa-plus-circle"></i> Otros Costos</h4>
+                                <div class="form-row">
+                                    <div class="form-group">
+                                        <label for="calc-packaging">Empaque y envío (₡):</label>
+                                        <input type="number" id="calc-packaging" name="packaging" min="0" value="0" step="100">
+                                    </div>
+                                    <div class="form-group">
+                                        <label for="calc-otros-gastos">Otros gastos operativos (₡):</label>
+                                        <input type="number" id="calc-otros-gastos" name="otros-gastos" min="0" value="0" step="100">
+                                        <small>Alquiler, internet, software, etc.</small>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <!-- Sección de Precio Final -->
+                            <div class="calc-subsection">
+                                <h4><i class="fas fa-dollar-sign"></i> Precio Final</h4>
+                                <div class="form-row">
+                                    <div class="form-group">
+                                        <label for="calc-margen">Margen de ganancia (%):</label>
+                                        <input type="number" id="calc-margen" name="margen" min="0" max="1000" step="5">
+                                    </div>
+                                    <div class="form-group">
+                                        <label for="calc-descuento">Descuento aplicado (%):</label>
+                                        <input type="number" id="calc-descuento" name="descuento" min="0" max="100" value="0" step="1">
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <!-- Sección de Impuestos -->
+                            <div class="calc-subsection">
+                                <h4><i class="fas fa-receipt"></i> Impuestos</h4>
+                                <div class="form-row">
+                                    <div class="form-group">
+                                        <label for="calc-incluir-iva">Incluir IVA:</label>
+                                        <select id="calc-incluir-iva" name="incluir-iva">
+                                            <option value="true">Sí, incluir IVA (13%)</option>
+                                            <option value="false">No incluir IVA</option>
+                                        </select>
+                                    </div>
+                                    <div class="form-group">
+                                        <label for="calc-iva-porcentaje">Porcentaje de IVA (%):</label>
+                                        <input type="number" id="calc-iva-porcentaje" name="iva-porcentaje" value="13" min="0" max="50" step="0.1">
+                                        <small>Costa Rica: 13% estándar</small>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div class="calc-submit-section">
+                                <button type="submit" class="btn btn-primary btn-large">
+                                    <i class="fas fa-calculator"></i> Calcular Precio
+                                </button>
+                                <button type="button" class="btn btn-secondary" onclick="resetCalculator()">
+                                    <i class="fas fa-undo"></i> Limpiar
+                                </button>
+                            </div>
+                        </form>
+                    </div>
                     
+                    <!-- Resultados -->
                     <div id="calc-results" class="calc-results" style="display: none;">
-                        <h3>Resultado del Cálculo</h3>
-                        <div class="result-item">
-                            <span>Costo de material:</span>
-                            <span id="costo-material">₡0</span>
+                        <h3><i class="fas fa-receipt"></i> Resultado del Cálculo</h3>
+                        
+                        <div class="results-summary">
+                            <div class="result-highlight">
+                                <span class="result-label">Precio Final Sugerido</span>
+                                <span class="result-value-main" id="precio-final-total">₡0</span>
+                                <span class="result-per-unit">Por pieza: <span id="precio-por-pieza">₡0</span></span>
+                            </div>
                         </div>
-                        <div class="result-item">
-                            <span>Costo de impresión:</span>
-                            <span id="costo-impresion">₡0</span>
-                        </div>
-                        <div class="result-item">
-                            <span>Subtotal:</span>
-                            <span id="subtotal">₡0</span>
-                        </div>
-                        <div class="result-item total">
-                            <span>Precio final sugerido:</span>
-                            <span id="precio-final">₡0</span>
+                        
+                        <div class="results-breakdown">
+                            <h4>Desglose de Costos</h4>
+                            
+                            <div class="result-section">
+                                <h5><i class="fas fa-industry"></i> Filamento</h5>
+                                <div class="result-item">
+                                    <span>Costo de material (peso + desperdicio):</span>
+                                    <span id="costo-material-total">₡0</span>
+                                </div>
+                                <div class="result-item-detail">
+                                    <span>Peso efectivo: <span id="peso-efectivo">0g</span></span>
+                                </div>
+                            </div>
+                            
+                            <div class="result-section">
+                                <h5><i class="fas fa-clock"></i> Tiempo y Mano de Obra</h5>
+                                <div class="result-item">
+                                    <span>Costo de mano de obra:</span>
+                                    <span id="costo-mano-obra">₡0</span>
+                                </div>
+                                <div class="result-item-detail">
+                                    <span>Tiempo total: <span id="tiempo-total">0h</span></span>
+                                </div>
+                            </div>
+                            
+                            <div class="result-section">
+                                <h5><i class="fas fa-bolt"></i> Electricidad</h5>
+                                <div class="result-item">
+                                    <span>Costo de electricidad:</span>
+                                    <span id="costo-electricidad">₡0</span>
+                                </div>
+                                <div class="result-item-detail">
+                                    <span>Consumo: <span id="consumo-kwh">0 kWh</span></span>
+                                </div>
+                            </div>
+                            
+                            <div class="result-section">
+                                <h5><i class="fas fa-tools"></i> Equipos y Mantenimiento</h5>
+                                <div class="result-item">
+                                    <span>Depreciación de equipos:</span>
+                                    <span id="costo-depreciacion">₡0</span>
+                                </div>
+                                <div class="result-item">
+                                    <span>Mantenimiento:</span>
+                                    <span id="costo-mantenimiento">₡0</span>
+                                </div>
+                            </div>
+                            
+                            <div class="result-section">
+                                <h5><i class="fas fa-plus-circle"></i> Otros Costos</h5>
+                                <div class="result-item">
+                                    <span>Empaque y envío:</span>
+                                    <span id="costo-packaging-result">₡0</span>
+                                </div>
+                                <div class="result-item">
+                                    <span>Otros gastos:</span>
+                                    <span id="costo-otros-result">₡0</span>
+                                </div>
+                            </div>
+                            
+                            <div class="result-totals">
+                                <div class="result-item subtotal">
+                                    <span>Subtotal (costos):</span>
+                                    <span id="subtotal-costos">₡0</span>
+                                </div>
+                                <div class="result-item">
+                                    <span>Margen de ganancia (<span id="margen-aplicado">0</span>%):</span>
+                                    <span id="ganancia-calculada">₡0</span>
+                                </div>
+                                <div class="result-item">
+                                    <span>Descuento aplicado:</span>
+                                    <span id="descuento-aplicado">-₡0</span>
+                                </div>
+                                <div class="result-item">
+                                    <span>Subtotal antes de IVA:</span>
+                                    <span id="subtotal-antes-iva">₡0</span>
+                                </div>
+                                <div class="result-item">
+                                    <span>IVA (<span id="iva-porcentaje-resultado">13</span>%):</span>
+                                    <span id="iva-calculado">₡0</span>
+                                </div>
+                                <div class="result-item total">
+                                    <span>PRECIO FINAL (con IVA):</span>
+                                    <span id="precio-final">₡0</span>
+                                </div>
+                            </div>
                         </div>
                         
                         <div class="calc-actions">
-                            <button class="btn btn-secondary" onclick="saveAsProduct()">Guardar como producto</button>
-                            <button class="btn btn-primary" onclick="createOrder()">Crear pedido</button>
+                            <button class="btn btn-secondary" onclick="saveAsProduct()">
+                                <i class="fas fa-box"></i> Guardar como producto
+                            </button>
+                            <button class="btn btn-primary" onclick="createOrder()">
+                                <i class="fas fa-clipboard-list"></i> Crear pedido
+                            </button>
+                            <button class="btn btn-info" onclick="shareCalculation()">
+                                <i class="fas fa-share"></i> Compartir cálculo
+                            </button>
+                            <button class="btn btn-success" onclick="printCalculation()">
+                                <i class="fas fa-print"></i> Imprimir resumen
+                            </button>
                         </div>
                     </div>
                 </div>
@@ -1534,6 +1881,6 @@
     </div>
 
     <!-- Scripts -->
-    <script src="app.js"></script>
+    <script src="app.js?v=2025112201"></script>
 </body>
 </html>

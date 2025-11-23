@@ -687,7 +687,7 @@ class ConsumoManager {
 }
 
 // ========================================
-// CALCULADORA DE COSTOS
+// CALCULADORA DE COSTOS AVANZADA
 // ========================================
 
 class CostCalculator {
@@ -705,6 +705,11 @@ class CostCalculator {
             select.appendChild(option);
         });
 
+        // Event listener para actualizar costo cuando se selecciona material
+        select.addEventListener('change', function() {
+            CostCalculator.updateMaterialCost();
+        });
+
         // También cargar en el modal de pedidos
         const pedidoSelect = document.getElementById('pedido-material');
         if (pedidoSelect) {
@@ -718,53 +723,355 @@ class CostCalculator {
         }
     }
 
+    static updateMaterialCost() {
+        const select = document.getElementById('calc-material');
+        const costoInput = document.getElementById('calc-costo-filamento');
+        
+        if (select.value) {
+            const selectedOption = select.options[select.selectedIndex];
+            const costo = selectedOption.dataset.costo;
+            costoInput.value = costo;
+        } else {
+            costoInput.value = '';
+        }
+    }
+
     static loadConfig() {
         const config = DataManager.getConfig();
-        document.getElementById('calc-costo-hora').value = config.costoHora;
-        document.getElementById('calc-margen').value = config.margen;
+        
+        // Cargar configuración básica si existen los elementos
+        const costoHoraEl = document.getElementById('calc-costo-hora');
+        const margenEl = document.getElementById('calc-margen');
+        const potenciaEl = document.getElementById('calc-potencia');
+        const costoKwhEl = document.getElementById('calc-costo-kwh');
+        
+        if (costoHoraEl) costoHoraEl.value = config.costoHora || 1000;
+        if (margenEl) margenEl.value = config.margen || 30;
+        
+        // Cargar otros valores por defecto si no están establecidos
+        if (potenciaEl && !potenciaEl.value) {
+            potenciaEl.value = 250;
+        }
+        if (costoKwhEl && !costoKwhEl.value) {
+            costoKwhEl.value = 110;
+        }
+        
+        // Inicializar todos los cálculos automáticos
+        setTimeout(() => {
+            this.updateEquipmentCost();
+            this.updateFilamentCost();
+            this.updateElectricityCost();
+            this.updateLaborCost();
+        }, 100);
     }
 
     static calculate(formData) {
-        const materialId = parseInt(formData.get('material'));
-        const peso = parseFloat(formData.get('peso')); // gramos
-        const tiempo = parseFloat(formData.get('tiempo')); // horas
-        const costoHora = parseFloat(formData.get('costo-hora'));
-        const margen = parseFloat(formData.get('margen'));
+        try {
+            // Obtener todos los valores del formulario
+            const materialId = parseInt(formData.get('material'));
+            const cantidad = parseInt(formData.get('cantidad')) || 1;
+            const peso = parseFloat(formData.get('peso')); // gramos por pieza
+            const desperdicio = parseFloat(formData.get('desperdicio')) || 5; // %
+            
+            const tiempo = parseFloat(formData.get('tiempo')); // horas
+            const tiempoPrep = parseFloat(formData.get('tiempo-prep')) || 0; // minutos
+            const tiempoPost = parseFloat(formData.get('tiempo-post')) || 0; // minutos
+            const factorFallo = parseFloat(formData.get('tiempo-fallo')) || 5; // %
+            
+            const potencia = parseFloat(formData.get('consumo-energia')) || 120; // watts
+            const costoKwh = parseFloat(formData.get('costo-energia')) || 110; // ₡/kWh
+            
+            // Mano de obra con nuevos controles
+            const costoPrep = parseFloat(formData.get('costo-prep')) || 1000;
+            const costoPost = parseFloat(formData.get('costo-post')) || 0;
+            
+            const costoImpresora = parseFloat(formData.get('costo-impresora')) || 250000;
+            const retornoInversion = parseFloat(formData.get('retorno-inversion')) || 2;
+            const usoComercial = parseFloat(formData.get('uso-comercial')) || 6;
+            const porcentajeReparacion = parseFloat(formData.get('porcentaje-reparacion')) || 5;
+            
+            const packaging = parseFloat(formData.get('packaging')) || 0;
+            const otrosGastos = parseFloat(formData.get('otros-gastos')) || 0;
+            
+            const margen = parseFloat(formData.get('margen'));
+            const descuento = parseFloat(formData.get('descuento')) || 0;
 
-        // Obtener costo del material
-        const insumos = DataManager.load(DataManager.keys.insumos);
-        const material = insumos.find(i => i.id === materialId);
-        
-        if (!material) {
-            alert('Material no encontrado');
-            return;
+            // Validaciones
+            if (!materialId || !peso || !tiempo || margen === undefined) {
+                alert('Por favor complete todos los campos requeridos');
+                return;
+            }
+
+            // Obtener costo del material
+            const insumos = DataManager.load(DataManager.keys.insumos);
+            const material = insumos.find(i => i.id === materialId);
+            
+            if (!material) {
+                alert('Material no encontrado');
+                return;
+            }
+
+            // === CÁLCULOS ===
+
+            // 1. Costo de filamento
+            const pesoTotal = peso * cantidad; // gramos totales
+            const pesoConDesperdicio = pesoTotal * (1 + desperdicio / 100); // incluir desperdicio
+            const pesoKg = pesoConDesperdicio / 1000; // convertir a kg
+            const costoMaterial = pesoKg * material.costo;
+
+            // 2. Costo de tiempo y mano de obra
+            const tiempoTotal = tiempo + (tiempoPrep / 60) + (tiempoPost / 60); // horas
+            const tiempoConFallos = tiempoTotal * (1 + factorFallo / 100); // incluir factor de fallos
+            
+            // 2. Costo de mano de obra
+            const costoPreparacion = (tiempoPrep / 60) * costoPrep;
+            const costoPostProcesamiento = (tiempoPost / 60) * costoPost;
+            const costoManoObra = costoPreparacion + costoPostProcesamiento;
+
+            // 3. Costo de electricidad
+            const consumoKwh = (potencia / 1000) * tiempo; // kWh solo durante impresión
+            const costoElectricidad = consumoKwh * costoKwh;
+
+            // 4. Costo de equipos y mantenimiento (método Prusa3D)
+            const costoReparaciones = costoImpresora * (porcentajeReparacion / 100);
+            const costoTotalEquipo = costoImpresora + costoReparaciones;
+            const horasTotalesVidaUtil = retornoInversion * 365 * usoComercial;
+            const costoEquipoPorHora = costoTotalEquipo / horasTotalesVidaUtil;
+            
+            const costoDepreciacion = costoEquipoPorHora * tiempo;
+            const costoMantenimiento = 0; // Ya incluido en la depreciación
+
+            // 5. Otros costos
+            const costoPackaging = packaging * cantidad;
+            const costoOtros = otrosGastos;
+
+            // 6. Subtotal de costos
+            const subtotalCostos = costoMaterial + costoManoObra + costoElectricidad + 
+                                 costoDepreciacion + costoMantenimiento + costoPackaging + costoOtros;
+
+            // 7. Aplicar margen
+            const ganancia = subtotalCostos * (margen / 100);
+            const precioConMargen = subtotalCostos + ganancia;
+
+            // 8. Aplicar descuento
+            const montoDescuento = precioConMargen * (descuento / 100);
+            const subtotalAntesIva = precioConMargen - montoDescuento;
+
+            // 9. Aplicar IVA si está habilitado
+            const incluirIva = formData.get('incluir-iva') !== 'false'; // Por defecto sí incluir
+            const ivaPorcentaje = parseFloat(formData.get('iva-porcentaje')) || 13;
+            let ivaCalculado = 0;
+            let precioFinal = subtotalAntesIva;
+            
+            if (incluirIva) {
+                ivaCalculado = subtotalAntesIva * (ivaPorcentaje / 100);
+                precioFinal = subtotalAntesIva + ivaCalculado;
+            }
+
+            // 10. Precio por pieza
+            const precioPorPieza = precioFinal / cantidad;
+
+            // Mostrar resultados
+            this.displayResults({
+                cantidad,
+                material: `${material.tipo} - ${material.color}`,
+                pesoEfectivo: pesoConDesperdicio,
+                tiempoTotal: tiempoConFallos,
+                consumoKwh,
+                costoMaterial,
+                costoManoObra,
+                costoElectricidad,
+                costoDepreciacion,
+                costoMantenimiento,
+                costoPackaging,
+                costoOtros,
+                subtotalCostos,
+                margen,
+                ganancia,
+                descuento,
+                montoDescuento,
+                subtotalAntesIva,
+                incluirIva,
+                ivaPorcentaje,
+                ivaCalculado,
+                precioFinal,
+                precioPorPieza,
+                peso,
+                tiempo
+            });
+
+        } catch (error) {
+            console.error('Error en el cálculo:', error);
+            alert('Error al realizar el cálculo. Por favor revise los datos ingresados.');
         }
+    }
 
-        // Cálculos
-        const pesoKg = peso / 1000; // convertir a kg
-        const costoMaterial = pesoKg * material.costo;
-        const costoImpresion = tiempo * costoHora;
-        const subtotal = costoMaterial + costoImpresion;
-        const precioFinal = subtotal * (1 + margen / 100);
+    static displayResults(data) {
+        // Actualizar valores principales
+        document.getElementById('precio-final-total').textContent = `₡${Math.round(data.precioFinal).toLocaleString()}`;
+        document.getElementById('precio-por-pieza').textContent = `₡${Math.round(data.precioPorPieza).toLocaleString()}`;
 
-        // Mostrar resultados
-        document.getElementById('costo-material').textContent = `₡${costoMaterial.toLocaleString()}`;
-        document.getElementById('costo-impresion').textContent = `₡${costoImpresion.toLocaleString()}`;
-        document.getElementById('subtotal').textContent = `₡${subtotal.toLocaleString()}`;
-        document.getElementById('precio-final').textContent = `₡${precioFinal.toLocaleString()}`;
+        // Detalles de filamento
+        document.getElementById('costo-material-total').textContent = `₡${Math.round(data.costoMaterial).toLocaleString()}`;
+        document.getElementById('peso-efectivo').textContent = `${data.pesoEfectivo.toFixed(1)}g`;
+
+        // Tiempo y mano de obra
+        document.getElementById('costo-mano-obra').textContent = `₡${Math.round(data.costoManoObra).toLocaleString()}`;
+        document.getElementById('tiempo-total').textContent = `${data.tiempoTotal.toFixed(2)}h`;
+
+        // Electricidad
+        document.getElementById('costo-electricidad').textContent = `₡${Math.round(data.costoElectricidad).toLocaleString()}`;
+        document.getElementById('consumo-kwh').textContent = `${data.consumoKwh.toFixed(2)} kWh`;
+
+        // Equipos y mantenimiento
+        document.getElementById('costo-depreciacion').textContent = `₡${Math.round(data.costoDepreciacion).toLocaleString()}`;
+        document.getElementById('costo-mantenimiento').textContent = `₡${Math.round(data.costoMantenimiento).toLocaleString()}`;
+
+        // Otros costos
+        document.getElementById('costo-packaging-result').textContent = `₡${Math.round(data.costoPackaging).toLocaleString()}`;
+        document.getElementById('costo-otros-result').textContent = `₡${Math.round(data.costoOtros).toLocaleString()}`;
+
+        // Totales
+        document.getElementById('subtotal-costos').textContent = `₡${Math.round(data.subtotalCostos).toLocaleString()}`;
+        document.getElementById('margen-aplicado').textContent = data.margen;
+        document.getElementById('ganancia-calculada').textContent = `₡${Math.round(data.ganancia).toLocaleString()}`;
+        document.getElementById('descuento-aplicado').textContent = `₡${Math.round(data.montoDescuento).toLocaleString()}`;
+        
+        // IVA
+        if (data.incluirIva) {
+            document.getElementById('subtotal-antes-iva').textContent = `₡${Math.round(data.subtotalAntesIva).toLocaleString()}`;
+            document.getElementById('iva-calculado').textContent = `₡${Math.round(data.ivaCalculado).toLocaleString()}`;
+            document.getElementById('iva-section').style.display = 'block';
+        } else {
+            document.getElementById('iva-section').style.display = 'none';
+        }
+        
+        document.getElementById('precio-final').textContent = `₡${Math.round(data.precioFinal).toLocaleString()}`;
 
         // Guardar datos para usar después
         this.lastCalculation = {
-            material: material.tipo + ' - ' + material.color,
-            peso,
-            tiempo,
-            costoMaterial,
-            costoImpresion,
-            subtotal,
-            precioFinal
+            material: data.material,
+            cantidad: data.cantidad,
+            peso: data.peso,
+            tiempo: data.tiempo,
+            costoTotal: data.costoMaterial + data.costoManoObra + data.costoElectricidad + 
+                       data.costoDepreciacion + data.costoMantenimiento + data.costoPackaging + data.costoOtros,
+            precioFinal: data.precioFinal,
+            precioPorPieza: data.precioPorPieza
         };
 
+        // Mostrar sección de resultados
         document.getElementById('calc-results').style.display = 'block';
+        
+        // Scroll suave hacia los resultados
+        document.getElementById('calc-results').scrollIntoView({ 
+            behavior: 'smooth',
+            block: 'start'
+        });
+    }
+
+    static updateEquipmentCost() {
+        try {
+            // Obtener valores de los inputs
+            const costoImpresora = parseFloat(document.getElementById('calc-costo-impresora').value) || 0;
+            const retornoInversion = parseFloat(document.getElementById('calc-retorno-inversion').value) || 2;
+            const usoComercial = parseFloat(document.getElementById('calc-uso-comercial').value) || 6;
+            const porcentajeReparacion = parseFloat(document.getElementById('calc-porcentaje-reparacion').value) || 5;
+            
+            // Calcular según fórmula de Prusa3D:
+            // Costo total = (Costo impresora + Costo reparaciones) / (Años * 365 días * horas por día)
+            const costoReparaciones = costoImpresora * (porcentajeReparacion / 100);
+            const costoTotal = costoImpresora + costoReparaciones;
+            const horasTotalesVidaUtil = retornoInversion * 365 * usoComercial;
+            const costoPorHora = costoTotal / horasTotalesVidaUtil;
+            
+            // Mostrar resultado
+            document.getElementById('costo-maquina-calculado').textContent = `CRC ${costoPorHora.toFixed(2)}`;
+            
+            return costoPorHora;
+        } catch (error) {
+            console.error('Error al calcular costo de equipos:', error);
+            return 0;
+        }
+    }
+
+    static updateFilamentCost() {
+        try {
+            const peso = parseFloat(document.getElementById('calc-peso').value) || 0;
+            const desperdicio = parseFloat(document.getElementById('calc-desperdicio').value) || 0;
+            const cantidad = parseInt(document.getElementById('calc-cantidad').value) || 1;
+            
+            // Obtener costo del material seleccionado
+            const materialId = parseInt(document.getElementById('calc-material').value);
+            if (!materialId) {
+                document.getElementById('costo-filamento-calculado').textContent = 'CRC 0.00';
+                return 0;
+            }
+            
+            const materiales = DataManager.load(DataManager.keys.insumos);
+            const material = materiales.find(m => m.id === materialId);
+            if (!material) {
+                document.getElementById('costo-filamento-calculado').textContent = 'CRC 0.00';
+                return 0;
+            }
+            
+            // Calcular costo
+            const pesoConDesperdicio = peso * (1 + desperdicio / 100);
+            const costoTotal = (pesoConDesperdicio / 1000) * material.precio * cantidad;
+            
+            // Mostrar resultado
+            document.getElementById('costo-filamento-calculado').textContent = `CRC ${costoTotal.toFixed(2)}`;
+            
+            return costoTotal;
+        } catch (error) {
+            console.error('Error al calcular costo de filamento:', error);
+            document.getElementById('costo-filamento-calculado').textContent = 'CRC 0.00';
+            return 0;
+        }
+    }
+
+    static updateElectricityCost() {
+        try {
+            const tiempo = parseFloat(document.getElementById('calc-tiempo').value) || 0;
+            const consumoEnergia = parseFloat(document.getElementById('calc-consumo-energia').value) || 120;
+            const costoEnergia = parseFloat(document.getElementById('calc-costo-energia').value) || 110;
+            
+            // Calcular costo de electricidad
+            const consumoKwh = (consumoEnergia / 1000) * tiempo;
+            const costoTotal = consumoKwh * costoEnergia;
+            
+            // Mostrar resultado
+            document.getElementById('costo-electricidad-calculado').textContent = `CRC ${costoTotal.toFixed(2)}`;
+            
+            return costoTotal;
+        } catch (error) {
+            console.error('Error al calcular costo de electricidad:', error);
+            document.getElementById('costo-electricidad-calculado').textContent = 'CRC 0.00';
+            return 0;
+        }
+    }
+
+    static updateLaborCost() {
+        try {
+            const tiempoPrep = parseFloat(document.getElementById('calc-tiempo-prep').value) || 0;
+            const costoPrep = parseFloat(document.getElementById('calc-costo-prep').value) || 0;
+            const tiempoPost = parseFloat(document.getElementById('calc-tiempo-post').value) || 0;
+            const costoPost = parseFloat(document.getElementById('calc-costo-post').value) || 0;
+            
+            // Calcular costos (convertir minutos a horas)
+            const costoPreparacion = (tiempoPrep / 60) * costoPrep;
+            const costoPostProcesamiento = (tiempoPost / 60) * costoPost;
+            const costoTotal = costoPreparacion + costoPostProcesamiento;
+            
+            // Mostrar resultado
+            document.getElementById('costo-mano-obra-calculado').textContent = `CRC ${costoTotal.toFixed(2)}`;
+            
+            return costoTotal;
+        } catch (error) {
+            console.error('Error al calcular costo de mano de obra:', error);
+            document.getElementById('costo-mano-obra-calculado').textContent = 'CRC 0.00';
+            return 0;
+        }
     }
 }
 
@@ -1265,33 +1572,177 @@ function openConsumoModal() {
 // FUNCIONES AUXILIARES
 // ========================================
 
+// ========================================
+// FUNCIONES AUXILIARES PARA CALCULADORA
+// ========================================
+
+function resetCalculator() {
+    const form = document.getElementById('calc-form');
+    form.reset();
+    document.getElementById('calc-results').style.display = 'none';
+    
+    // Recargar configuración por defecto
+    CostCalculator.loadConfig();
+    
+    // Limpiar costo de filamento
+    document.getElementById('calc-costo-filamento').value = '';
+}
+
 function saveAsProduct() {
-    if (!CostCalculator.lastCalculation) return;
+    if (!CostCalculator.lastCalculation) {
+        alert('Primero debe realizar un cálculo');
+        return;
+    }
     
     const calc = CostCalculator.lastCalculation;
     
     // Llenar modal de producto con datos calculados
-    document.getElementById('producto-nombre').value = `Pieza ${calc.material}`;
-    document.getElementById('producto-descripcion').value = `Impresión 3D - ${calc.peso}g - ${calc.tiempo}h`;
+    document.getElementById('producto-nombre').value = `${calc.material} - ${calc.cantidad} unidad${calc.cantidad > 1 ? 'es' : ''}`;
+    document.getElementById('producto-descripcion').value = `Impresión 3D - ${calc.peso}g por pieza - ${calc.tiempo}h total`;
     document.getElementById('producto-categoria').value = 'Personalizado';
-    document.getElementById('producto-precio').value = Math.round(calc.precioFinal);
-    document.getElementById('producto-stock').value = 1;
+    document.getElementById('producto-precio').value = Math.round(calc.precioPorPieza);
+    document.getElementById('producto-stock').value = calc.cantidad;
     
     openProductModal();
 }
 
 function createOrder() {
-    if (!CostCalculator.lastCalculation) return;
+    if (!CostCalculator.lastCalculation) {
+        alert('Primero debe realizar un cálculo');
+        return;
+    }
     
     const calc = CostCalculator.lastCalculation;
     
     // Llenar modal de pedido con datos calculados
-    document.getElementById('pedido-descripcion').value = `Impresión 3D - ${calc.peso}g - ${calc.tiempo}h`;
-    document.getElementById('pedido-peso').value = calc.peso;
+    document.getElementById('pedido-descripcion').value = `${calc.cantidad} x ${calc.material} - ${calc.peso}g por pieza`;
+    document.getElementById('pedido-peso').value = calc.peso * calc.cantidad;
     document.getElementById('pedido-precio').value = Math.round(calc.precioFinal);
     document.getElementById('pedido-estado').value = 'Pendiente';
     
     openPedidoModal();
+}
+
+function shareCalculation() {
+    if (!CostCalculator.lastCalculation) {
+        alert('Primero debe realizar un cálculo');
+        return;
+    }
+    
+    const calc = CostCalculator.lastCalculation;
+    const shareText = `Cotización de Impresión 3D:
+${calc.cantidad} x ${calc.material}
+${calc.peso}g por pieza - ${calc.tiempo}h total
+Precio: ₡${Math.round(calc.precioFinal).toLocaleString()} total
+Precio por pieza: ₡${Math.round(calc.precioPorPieza).toLocaleString()}
+
+Generado con 3D Control Center`;
+
+    if (navigator.share) {
+        navigator.share({
+            title: 'Cotización Impresión 3D',
+            text: shareText
+        });
+    } else {
+        // Fallback para navegadores sin Web Share API
+        navigator.clipboard.writeText(shareText).then(() => {
+            alert('Cotización copiada al portapapeles');
+        }).catch(() => {
+            // Fallback manual
+            const textArea = document.createElement('textarea');
+            textArea.value = shareText;
+            document.body.appendChild(textArea);
+            textArea.select();
+            document.execCommand('copy');
+            document.body.removeChild(textArea);
+            alert('Cotización copiada al portapapeles');
+        });
+    }
+}
+
+function printCalculation() {
+    if (!CostCalculator.lastCalculation) {
+        alert('Primero debe realizar un cálculo');
+        return;
+    }
+    
+    const calc = CostCalculator.lastCalculation;
+    const config = DataManager.getConfig();
+    
+    // Obtener el contenido del cálculo
+    const resultsContainer = document.getElementById('calc-results');
+    const resultsContent = resultsContainer.innerHTML;
+    
+    // Crear contenido para imprimir
+    const printContent = `
+        <div style="font-family: Arial, sans-serif; max-width: 800px; margin: 0 auto; padding: 20px; color: #000;">
+            <div style="text-align: center; border-bottom: 3px solid #ff6b35; padding-bottom: 20px; margin-bottom: 30px;">
+                <h1 style="color: #ff6b35; margin: 0;">${config.nombreNegocio}</h1>
+                ${config.telefono ? `<p style="margin: 5px 0;">Tel: ${config.telefono}</p>` : ''}
+                ${config.direccion ? `<p style="margin: 5px 0;">${config.direccion}</p>` : ''}
+                <h2 style="color: #333; margin: 20px 0 0 0;">Cotización de Impresión 3D</h2>
+            </div>
+            
+            <div style="background: #f8f9fa; padding: 20px; border-radius: 8px; margin-bottom: 30px;">
+                <h3 style="color: #ff6b35; margin-top: 0;">Resumen del Proyecto</h3>
+                <table style="width: 100%; border-collapse: collapse;">
+                    <tr><td style="padding: 5px 0; font-weight: bold;">Material:</td><td>${calc.material}</td></tr>
+                    <tr><td style="padding: 5px 0; font-weight: bold;">Cantidad:</td><td>${calc.cantidad} pieza${calc.cantidad > 1 ? 's' : ''}</td></tr>
+                    <tr><td style="padding: 5px 0; font-weight: bold;">Peso por pieza:</td><td>${calc.peso}g</td></tr>
+                    <tr><td style="padding: 5px 0; font-weight: bold;">Tiempo estimado:</td><td>${calc.tiempo}h</td></tr>
+                </table>
+            </div>
+            
+            ${resultsContent.replace(/style="display: none;"/g, '').replace(/₡/g, '₡')}
+            
+            <div style="text-align: center; margin-top: 40px; padding-top: 20px; border-top: 2px solid #ddd;">
+                <p style="font-size: 14px; color: #666;">
+                    Fecha: ${new Date().toLocaleDateString()}<br>
+                    Cotización generada con 3D Control Center
+                </p>
+                <p style="font-size: 12px; color: #999; margin-top: 20px;">
+                    Esta cotización es válida por 30 días desde la fecha de emisión
+                </p>
+            </div>
+        </div>
+    `;
+    
+    // Abrir ventana de impresión
+    const printWindow = window.open('', '_blank');
+    printWindow.document.write(`
+        <!DOCTYPE html>
+        <html>
+        <head>
+            <title>Cotización - ${calc.material}</title>
+            <style>
+                body { margin: 0; font-family: Arial, sans-serif; }
+                .calc-results { background: white !important; color: #000 !important; }
+                .result-section { background: #f8f9fa !important; }
+                .result-highlight { background: #fff !important; }
+                .results-summary { background: #f0f8ff !important; }
+                h3, h4, h5 { color: #333 !important; }
+                .result-value-main { color: #ff6b35 !important; }
+                .result-item.total { background: rgba(255, 107, 53, 0.1) !important; color: #ff6b35 !important; }
+                .calc-actions { display: none !important; }
+                @media print {
+                    body { font-size: 12px; }
+                    .no-print { display: none !important; }
+                }
+            </style>
+        </head>
+        <body>
+            ${printContent}
+        </body>
+        </html>
+    `);
+    
+    printWindow.document.close();
+    
+    // Esperar a que se cargue y luego imprimir
+    setTimeout(() => {
+        printWindow.print();
+        printWindow.close();
+    }, 250);
 }
 
 function addFacturaItem() {
@@ -2019,6 +2470,11 @@ document.addEventListener('DOMContentLoaded', function() {
         e.preventDefault();
         const formData = new FormData(this);
         CostCalculator.calculate(formData);
+    });
+
+    // Event listener para actualizar costo de filamento al seleccionar material
+    document.getElementById('calc-material').addEventListener('change', function() {
+        CostCalculator.updateMaterialCost();
     });
 
     // Event listener para formulario de pedidos
